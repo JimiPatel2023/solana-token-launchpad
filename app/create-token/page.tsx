@@ -45,7 +45,7 @@ export default function CreateToken() {
                   "Referer": "https://www.npoint.io/",
                   "Referrer-Policy": "strict-origin-when-cross-origin"
                 },
-                "body": `{\"contents\":\"{\\r\\n\\\"name\\\": \\\"${tokenName}\\\",\\r\\n\\\"symbol\\\": \\\"${tokenSymbol}\\\",\\r\\n\\\"description\\\": \\\"Only Possible On Solana\\\",\\r\\n\\\"image\\\": \\\"${imageLink}\\\"\\r\\n}\"}`,
+                "body": `{\"contents\":\"{\\r\\n\\\"name\\\": \\\"${tokenName}\\\",\\r\\n\\\"symbol\\\": \\\"${tokenSymbol}\\\",\\r\\n\\\"description\\\": \\\"Only Possible On Solana\\\",\\r\\n\\\"image\\\": \\\"${imageLink.replace(/"/g, '\\"')}\\\"\\r\\n}\"}`,
                 "method": "POST",
                 cache: "no-store"
               });
