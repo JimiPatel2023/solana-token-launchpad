@@ -34,7 +34,7 @@ export default function CreateToken() {
 				mint: mint.publicKey,
 				name: tokenName,
 				symbol: tokenSymbol,
-				uri: `https://${process.env.VERCEL_URL}/item/${data.url.split("https://jsonserve.com/")[1]}.json`,
+				uri: `https://${process.env.VERCEL_URL}/api/item/${data.url.split("https://jsonserve.com/")[1]}.json`,
 				// uri: "https://jimipatel2023.github.io/test-123/dfvfdv.json",
 				additionalMetadata: [],
 			};
@@ -70,7 +70,7 @@ export default function CreateToken() {
 				mintAuthority: wallet.publicKey, // Designated Mint Authority
 				name: tokenName,
 				symbol: tokenSymbol,
-				uri: `https://${process.env.VERCEL_URL}/item/${data.url.split("com/")[1]}.json`,
+				uri: `https://${process.env.VERCEL_URL}/api/item/${data.url.split("com/")[1]}.json`,
 				// uri: "https://jimipatel2023.github.io/test-123/dfvfdv.json",
 			});
 
