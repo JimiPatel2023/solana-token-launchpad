@@ -9,7 +9,7 @@ import { Connection, Keypair, SystemProgram, Transaction, clusterApiUrl, sendAnd
 import { ExtensionType, TOKEN_2022_PROGRAM_ID, createInitializeMintInstruction, getMintLen, createInitializeMetadataPointerInstruction, getMint, getMetadataPointerState, getTokenMetadata, TYPE_SIZE, LENGTH_SIZE } from "@solana/spl-token";
 import { createInitializeInstruction, createUpdateFieldInstruction, createRemoveKeyInstruction, pack, TokenMetadata } from "@solana/spl-token-metadata";
 import { div } from "framer-motion/client";
-import { createJsonFile, writeJsonFile } from "../actions/createJsonFile";
+import { createJsonFile } from "../actions/createJsonFile";
 
 export default function CreateToken() {
 	const wallet = useWallet();
@@ -28,19 +28,13 @@ export default function CreateToken() {
 			if (!wallet.publicKey) return new Error("Wallet not connected");
 			const mint = Keypair.generate();
 			const decimals = 6;
-			// const data = await createJsonFile(`{\"json\":\"{\\n\\\"name\\\": \\\"${tokenName}\\\",\\n\\\"symbol\\\": \\\"${tokenSymbol}\\\",\\n\\\"description\\\": \\\"This is for developmental purpose.\\\",\\n\\\"image\\\": \\\"${imageLink}\\\"\\n}\"}`);
-            const uri = await writeJsonFile(JSON.stringify({
-                "name": "Pepe the frog",
-                "symbol": "pepe",
-                "description": "This is for developmental purpose.",
-                "image": "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/image.png"
-                }, null, 2), mint.publicKey.toBase58())
-			if (!uri) return new Error("Failed to generate JSON file");
+			const data = await createJsonFile(`{\"json\":\"{\\n\\\"name\\\": \\\"${tokenName}\\\",\\n\\\"symbol\\\": \\\"${tokenSymbol}\\\",\\n\\\"description\\\": \\\"This is for developmental purpose.\\\",\\n\\\"image\\\": \\\"${imageLink}\\\"\\n}\"}`);
+			if (!data.url) return new Error("Failed to generate JSON file");
 			const metadata = {
 				mint: mint.publicKey,
 				name: tokenName,
 				symbol: tokenSymbol,
-				uri: uri,
+				uri: `https://${process.env.VERCEL_URL}/item/${data.url.split("https://jsonserve.com/")[1]}.json`,
 				// uri: "https://jimipatel2023.github.io/test-123/dfvfdv.json",
 				additionalMetadata: [],
 			};
@@ -76,7 +70,7 @@ export default function CreateToken() {
 				mintAuthority: wallet.publicKey, // Designated Mint Authority
 				name: tokenName,
 				symbol: tokenSymbol,
-				uri: uri,
+				uri: `https://${process.env.VERCEL_URL}/item/${data.url.split("com/")[1]}.json`,
 				// uri: "https://jimipatel2023.github.io/test-123/dfvfdv.json",
 			});
 
