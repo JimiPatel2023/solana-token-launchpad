@@ -11,8 +11,6 @@ import { createInitializeInstruction, createUpdateFieldInstruction, createRemove
 import { generateJsonFile } from "../actions/generateJsonFile";
 import { div } from "framer-motion/client";
 
-export const NEXT_PUBLIC_BASE_URL = ""
-
 export default function CreateToken() {
 	const wallet = useWallet();
 	const { connection } = useConnection();
