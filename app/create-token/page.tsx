@@ -50,8 +50,8 @@ export default function CreateToken() {
 						symbol: tokenSymbol,
 						description: "Only Possible On Solana",
 						image: imageLink,
-					}),
-				}),
+					},  null, 2),
+				},  null, 2),
 				method: "POST",
                 cache:"no-store"
 			});
