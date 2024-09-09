@@ -49,7 +49,7 @@ export default function CreateToken() {
                         name: tokenName,
                         symbol: tokenSymbol,
                         description: "Only Possible On Solana",
-                        image: imageLink,
+                        image: imageLink
                       }, null, 2)
 				}),
 				method: "POST",
