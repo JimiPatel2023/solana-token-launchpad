@@ -28,7 +28,7 @@ export default function CreateToken() {
 			if (!wallet.publicKey) return new Error("Wallet not connected");
 			const mint = Keypair.generate();
 			const decimals = 6;
-			const data = await createJsonFile(`{\"json\":\"{\\n  \\\"name\\\": \\\"${tokenName}\\\",\\n  \\\"symbol\\\": \\\"${tokenSymbol}\\\",\\n  \\\"description\\\": \\\"Only Possible On Solana\\\",\\n  \\\"image\\\": \\\"${imageLink}\\\"\\n}\"}`);
+			const data = await createJsonFile(`{\"json\":\"{\\n\\\"name\\\": \\\"${tokenName}\\\",\\n\\\"symbol\\\": \\\"${tokenSymbol}\\\",\\n\\\"description\\\": \\\"Only Possible On Solana\\\",\\n\\\"image\\\": \\\"${imageLink}\\\",\\n\\\"attributes\\\": [\\n{\\n\\\"trait_type\\\": \\\"Item\\\",\\n\\\"value\\\": \\\"Developer Portal\\\"\\n}\\n]\\n}\"}`);
 			if (!data.url) return new Error("Failed to generate JSON file");
 			const metadata = {
 				mint: mint.publicKey,
