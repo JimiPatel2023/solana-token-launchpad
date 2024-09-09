@@ -48,12 +48,12 @@ export default function CreateToken() {
                 "method": "POST"
               });
 			const data = await jsonFilePath.json();
-			if (!data.api_url) return new Error("Failed to generate JSON file");
+			if (!data.url) return new Error("Failed to generate JSON file");
 			const metadata = {
 				mint: mint.publicKey,
 				name: tokenName,
 				symbol: tokenSymbol,
-				uri: data.api_url,
+				uri: data.url,
 				additionalMetadata: [],
 			};
 			const metadataExtension = TYPE_SIZE + LENGTH_SIZE;
@@ -88,7 +88,7 @@ export default function CreateToken() {
 				mintAuthority: wallet.publicKey, // Designated Mint Authority
 				name: tokenName,
 				symbol: tokenSymbol,
-				uri: data.api_url,
+				uri: data.url,
 			});
 
 			const transaction = new Transaction().add(createAccountInstruction, initializeMetadataPointerInstruction, initializeMintInstruction, initializeMetadataInstruction);
