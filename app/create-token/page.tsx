@@ -9,6 +9,7 @@ import { Connection, Keypair, SystemProgram, Transaction, clusterApiUrl, sendAnd
 import { ExtensionType, TOKEN_2022_PROGRAM_ID, createInitializeMintInstruction, getMintLen, createInitializeMetadataPointerInstruction, getMint, getMetadataPointerState, getTokenMetadata, TYPE_SIZE, LENGTH_SIZE } from "@solana/spl-token";
 import { createInitializeInstruction, createUpdateFieldInstruction, createRemoveKeyInstruction, pack, TokenMetadata } from "@solana/spl-token-metadata";
 import { div } from "framer-motion/client";
+import { createJsonFile } from "../actions/createJsonFile";
 
 export default function CreateToken() {
 	const wallet = useWallet();
@@ -27,27 +28,7 @@ export default function CreateToken() {
 			if (!wallet.publicKey) return new Error("Wallet not connected");
 			const mint = Keypair.generate();
 			const decimals = 6;
-			const jsonFilePath = await fetch("https://api.jsonserve.com/data", {
-                "headers": {
-                  "accept": "application/json",
-                  "accept-language": "en-US,en;q=0.9,gu;q=0.8,en-GB;q=0.7,ja;q=0.6",
-                  "cache-control": "no-cache",
-                  "content-type": "application/json",
-                  "pragma": "no-cache",
-                  "priority": "u=1, i",
-                  "sec-ch-ua": "\"Chromium\";v=\"128\", \"Not;A=Brand\";v=\"24\", \"Google Chrome\";v=\"128\"",
-                  "sec-ch-ua-mobile": "?0",
-                  "sec-ch-ua-platform": "\"Windows\"",
-                  "sec-fetch-dest": "empty",
-                  "sec-fetch-mode": "cors",
-                  "sec-fetch-site": "same-site",
-                  "Referer": "https://jsonserve.com/",
-                  "Referrer-Policy": "strict-origin-when-cross-origin"
-                },
-                "body": `{\"json\":\"{\\n  \\\"name\\\": \\\"${tokenName}\\\",\\n  \\\"symbol\\\": \\\"${tokenSymbol}\\\",\\n  \\\"description\\\": \\\"Only Possible On Solana\\\",\\n  \\\"image\\\": \\\"${imageLink}\\\"\\n}\"}`,
-                "method": "POST"
-              });
-			const data = await jsonFilePath.json();
+			const data = await createJsonFile(`{\"json\":\"{\\n  \\\"name\\\": \\\"${tokenName}\\\",\\n  \\\"symbol\\\": \\\"${tokenSymbol}\\\",\\n  \\\"description\\\": \\\"Only Possible On Solana\\\",\\n  \\\"image\\\": \\\"${imageLink}\\\"\\n}\"}`);
 			if (!data.url) return new Error("Failed to generate JSON file");
 			const metadata = {
 				mint: mint.publicKey,
