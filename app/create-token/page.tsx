@@ -9,7 +9,7 @@ import { Connection, Keypair, SystemProgram, Transaction, clusterApiUrl, sendAnd
 import { ExtensionType, TOKEN_2022_PROGRAM_ID, createInitializeMintInstruction, getMintLen, createInitializeMetadataPointerInstruction, getMint, getMetadataPointerState, getTokenMetadata, TYPE_SIZE, LENGTH_SIZE } from "@solana/spl-token";
 import { createInitializeInstruction, createUpdateFieldInstruction, createRemoveKeyInstruction, pack, TokenMetadata } from "@solana/spl-token-metadata";
 import { div } from "framer-motion/client";
-import { createJsonFile } from "../actions/createJsonFile";
+import { createJsonFile, writeJsonFile } from "../actions/createJsonFile";
 
 export default function CreateToken() {
 	const wallet = useWallet();
@@ -28,13 +28,20 @@ export default function CreateToken() {
 			if (!wallet.publicKey) return new Error("Wallet not connected");
 			const mint = Keypair.generate();
 			const decimals = 6;
-			const data = await createJsonFile(`{\"json\":\"{\\n\\\"name\\\": \\\"${tokenName}\\\",\\n\\\"symbol\\\": \\\"${tokenSymbol}\\\",\\n\\\"description\\\": \\\"Only Possible On Solana\\\",\\n\\\"image\\\": \\\"${imageLink}\\\",\\n\\\"attributes\\\": [\\n{\\n\\\"trait_type\\\": \\\"Item\\\",\\n\\\"value\\\": \\\"Developer Portal\\\"\\n}\\n]\\n}\"}`);
-			if (!data.url) return new Error("Failed to generate JSON file");
+			// const data = await createJsonFile(`{\"json\":\"{\\n\\\"name\\\": \\\"${tokenName}\\\",\\n\\\"symbol\\\": \\\"${tokenSymbol}\\\",\\n\\\"description\\\": \\\"This is for developmental purpose.\\\",\\n\\\"image\\\": \\\"${imageLink}\\\"\\n}\"}`);
+            const uri = await writeJsonFile(JSON.stringify({
+                "name": "Pepe the frog",
+                "symbol": "pepe",
+                "description": "This is for developmental purpose.",
+                "image": "https://raw.githubusercontent.com/solana-developers/opos-asset/main/assets/DeveloperPortal/image.png"
+                }, null, 2), mint.publicKey.toBase58())
+			if (!uri) return new Error("Failed to generate JSON file");
 			const metadata = {
 				mint: mint.publicKey,
 				name: tokenName,
 				symbol: tokenSymbol,
-				uri: data.url,
+				uri: uri,
+				// uri: "https://jimipatel2023.github.io/test-123/dfvfdv.json",
 				additionalMetadata: [],
 			};
 			const metadataExtension = TYPE_SIZE + LENGTH_SIZE;
@@ -69,7 +76,8 @@ export default function CreateToken() {
 				mintAuthority: wallet.publicKey, // Designated Mint Authority
 				name: tokenName,
 				symbol: tokenSymbol,
-				uri: data.url,
+				uri: uri,
+				// uri: "https://jimipatel2023.github.io/test-123/dfvfdv.json",
 			});
 
 			const transaction = new Transaction().add(createAccountInstruction, initializeMetadataPointerInstruction, initializeMintInstruction, initializeMetadataInstruction);
