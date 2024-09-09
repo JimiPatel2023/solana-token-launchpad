@@ -31,6 +31,7 @@ export async function createJsonFile(data: JsonFileData) {
       contents: JSON.stringify(data),
     }),
     method: "POST",
+    cache:"no-cache"
   });
 
   return response.json();
