@@ -20,42 +20,41 @@ export default function CreateToken() {
 	const [previewImage, setPreviewImage] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
 
-
 	async function createToken(e: React.FormEvent) {
 		e.preventDefault();
-        setIsLoading(true)
+		setIsLoading(true);
 		try {
 			if (!wallet.publicKey) return new Error("Wallet not connected");
 			const mint = Keypair.generate();
 			const decimals = 6;
 			const jsonFilePath = await fetch("https://www.npoint.io/documents", {
-                "headers": {
-                  "accept": "application/json, text/plain, */*",
-                  "accept-language": "en-US,en;q=0.9,gu;q=0.8,en-GB;q=0.7,ja;q=0.6",
-                  "cache-control": "no-cache",
-                  "content-type": "application/json;charset=UTF-8",
-                  "pragma": "no-cache",
-                  "priority": "u=1, i",
-                  "sec-ch-ua": "\"Chromium\";v=\"128\", \"Not;A=Brand\";v=\"24\", \"Google Chrome\";v=\"128\"",
-                  "sec-ch-ua-mobile": "?0",
-                  "sec-ch-ua-platform": "\"Windows\"",
-                  "sec-fetch-dest": "empty",
-                  "sec-fetch-mode": "cors",
-                  "sec-fetch-site": "same-origin",
-                  "Referer": "https://www.npoint.io/",
-                  "Referrer-Policy": "strict-origin-when-cross-origin"
-                },
-                "body": JSON.stringify({
-                    contents:{
-                        "name": tokenName,
-                        "symbol": tokenSymbol,
-                        "description": "Only Possible On Solana",
-                        "image": imageLink,
-                    }
-                }),
-                "method": "POST"
-              });
-            const data = await jsonFilePath.json()
+				headers: {
+					accept: "application/json, text/plain, */*",
+					"accept-language": "en-US,en;q=0.9,gu;q=0.8,en-GB;q=0.7,ja;q=0.6",
+					"cache-control": "no-cache",
+					"content-type": "application/json;charset=UTF-8",
+					pragma: "no-cache",
+					priority: "u=1, i",
+					"sec-ch-ua": '"Chromium";v="128", "Not;A=Brand";v="24", "Google Chrome";v="128"',
+					"sec-ch-ua-mobile": "?0",
+					"sec-ch-ua-platform": '"Windows"',
+					"sec-fetch-dest": "empty",
+					"sec-fetch-mode": "cors",
+					"sec-fetch-site": "same-origin",
+					Referer: "https://www.npoint.io/",
+					"Referrer-Policy": "strict-origin-when-cross-origin",
+				},
+				body: JSON.stringify({
+					contents: JSON.stringify({
+						name: tokenName,
+						symbol: tokenSymbol,
+						description: "Only Possible On Solana",
+						image: imageLink,
+					}),
+				}),
+				method: "POST",
+			});
+			const data = await jsonFilePath.json();
 			if (!data.api_url) return new Error("Failed to generate JSON file");
 			const metadata = {
 				mint: mint.publicKey,
@@ -99,16 +98,11 @@ export default function CreateToken() {
 				uri: data.api_url,
 			});
 
-			const transaction = new Transaction().add(
-				createAccountInstruction,
-				initializeMetadataPointerInstruction,
-				initializeMintInstruction,
-				initializeMetadataInstruction
-			);
-            
-            transaction.feePayer = wallet.publicKey;
-            transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
-    
+			const transaction = new Transaction().add(createAccountInstruction, initializeMetadataPointerInstruction, initializeMintInstruction, initializeMetadataInstruction);
+
+			transaction.feePayer = wallet.publicKey;
+			transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
 			transaction.partialSign(mint);
 
 			await wallet.sendTransaction(transaction, connection);
@@ -118,7 +112,7 @@ export default function CreateToken() {
 		} catch (error) {
 			console.log(error);
 		}
-        setIsLoading(false)
+		setIsLoading(false);
 	}
 
 	return (
@@ -148,7 +142,13 @@ export default function CreateToken() {
 							<input type="url" id="imageLink" value={imageLink} onChange={(e) => setImageLink(e.target.value)} className="w-full px-3 py-2 bg-[#0F172A] border border-[#3730A3]/20 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-600" required />
 						</div>
 						<motion.button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 ease-out" whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(147, 51, 234, 0.5)" }} whileTap={{ scale: 0.95 }} disabled={isLoading}>
-							{isLoading ? <div className="flex items-center gap-2 justify-center"><div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>Sending the transaction...</div> : "Create Token"}
+							{isLoading ? (
+								<div className="flex items-center gap-2 justify-center">
+									<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>Sending the transaction...
+								</div>
+							) : (
+								"Create Token"
+							)}
 						</motion.button>
 					</form>
 				) : (
