@@ -8,7 +8,6 @@ import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Connection, Keypair, SystemProgram, Transaction, clusterApiUrl, sendAndConfirmTransaction } from "@solana/web3.js";
 import { ExtensionType, TOKEN_2022_PROGRAM_ID, createInitializeMintInstruction, getMintLen, createInitializeMetadataPointerInstruction, getMint, getMetadataPointerState, getTokenMetadata, TYPE_SIZE, LENGTH_SIZE } from "@solana/spl-token";
 import { createInitializeInstruction, createUpdateFieldInstruction, createRemoveKeyInstruction, pack, TokenMetadata } from "@solana/spl-token-metadata";
-import { generateJsonFile } from "../actions/generateJsonFile";
 import { div } from "framer-motion/client";
 
 export default function CreateToken() {
@@ -29,13 +28,40 @@ export default function CreateToken() {
 			if (!wallet.publicKey) return new Error("Wallet not connected");
 			const mint = Keypair.generate();
 			const decimals = 6;
-			const jsonFilePath = await generateJsonFile(tokenName, tokenSymbol, imageLink, `${mint.publicKey.toBase58()}.json`);
-			if (!jsonFilePath) return new Error("Failed to generate JSON file");
+			const jsonFilePath = await fetch("https://www.npoint.io/documents", {
+                "headers": {
+                  "accept": "application/json, text/plain, */*",
+                  "accept-language": "en-US,en;q=0.9,gu;q=0.8,en-GB;q=0.7,ja;q=0.6",
+                  "cache-control": "no-cache",
+                  "content-type": "application/json;charset=UTF-8",
+                  "pragma": "no-cache",
+                  "priority": "u=1, i",
+                  "sec-ch-ua": "\"Chromium\";v=\"128\", \"Not;A=Brand\";v=\"24\", \"Google Chrome\";v=\"128\"",
+                  "sec-ch-ua-mobile": "?0",
+                  "sec-ch-ua-platform": "\"Windows\"",
+                  "sec-fetch-dest": "empty",
+                  "sec-fetch-mode": "cors",
+                  "sec-fetch-site": "same-origin",
+                  "Referer": "https://www.npoint.io/",
+                  "Referrer-Policy": "strict-origin-when-cross-origin"
+                },
+                "body": JSON.stringify({
+                    contents:{
+                        "name": tokenName,
+                        "symbol": tokenSymbol,
+                        "description": "Only Possible On Solana",
+                        "image": imageLink,
+                    }
+                }),
+                "method": "POST"
+              });
+            const data = await jsonFilePath.json()
+			if (!data.api_url) return new Error("Failed to generate JSON file");
 			const metadata = {
 				mint: mint.publicKey,
 				name: tokenName,
 				symbol: tokenSymbol,
-				uri: `https://${process.env.VERCEL_URL}/${mint.publicKey.toBase58()}.json`,
+				uri: data.api_url,
 				additionalMetadata: [],
 			};
 			const metadataExtension = TYPE_SIZE + LENGTH_SIZE;
@@ -70,7 +96,7 @@ export default function CreateToken() {
 				mintAuthority: wallet.publicKey, // Designated Mint Authority
 				name: tokenName,
 				symbol: tokenSymbol,
-				uri: `https://${process.env.VERCEL_URL}${mint.publicKey.toBase58()}.json`,
+				uri: data.api_url,
 			});
 
 			const transaction = new Transaction().add(
