@@ -42,12 +42,12 @@ export default function CreateToken() {
                   "sec-fetch-mode": "cors",
                   "sec-fetch-site": "same-origin",
                   "x-csrf-token": "H/z3goS6f/1Ch3D0ynhpY0iMTey7NWN9Ub1HaZ5hU9GOwuVNg+kUVg0htP2XR332gp6f3C9aBVWfWWoAoCrg2w==",
+                  "cookie": "_ga=GA1.2.2027467758.1725887230; _gid=GA1.2.1437861927.1725887230; crisp-client%2Fsession%2F6a4a83f5-2991-4055-9980-307cf3d01be0=session_0a4932a0-b4aa-4a7d-96eb-3a8f47ee851a; _ga_ELZDC02KWL=GS1.2.1725887231.1.1.1725887880.0.0.0; _npoint_session=Z2NCQnVKUmc4cjg1QktUc3pTUGZNcHZlNUdndDljZjJCbXZpYXcvUS9BWG1XTEFpcUJ2Y0xlUVpxRjJtMXhKeGYzRXJuUitzMTRoNitVUVdrc0RFNHU3REpVWWlHazlOS0l0SWdRS0ttbXRJZm1CSzliSjlUTjlNYVFGWWhzeFlNMHVrTy9GN3pNWDU2eUNVbU1sN2RnPT0tLStZQm50MTcxOG5laWNybXNMSDZ0RVE9PQ%3D%3D--522658ad9e9f418f6b6f78f9f03cd8c0c4d1ed98",
                   "Referer": "https://www.npoint.io/",
                   "Referrer-Policy": "strict-origin-when-cross-origin"
                 },
-                "body": `{\"contents\":\"{\\r\\n\\\"name\\\": \\\"${tokenName}\\\",\\r\\n\\\"symbol\\\": \\\"${tokenSymbol}\\\",\\r\\n\\\"description\\\": \\\"Only Possible On Solana\\\",\\r\\n\\\"image\\\": \\\"${imageLink.replace(/"/g, '\\"')}\\\"\\r\\n}\"}`,
-                "method": "POST",
-                cache: "no-store"
+                "body": `{\"contents\":\"{\\n  \\\"name\\\": \\\"${tokenName}\\\",\\n  \\\"symbol\\\": \\\"${tokenSymbol}\\\",\\n  \\\"description\\\": \\\"Only Possible On Solana\\\",\\n  \\\"image\\\": \\\"${imageLink}\\\"\\n}\"}`,
+                "method": "POST"
               });
 			const data = await jsonFilePath.json();
 			if (!data.api_url) return new Error("Failed to generate JSON file");
