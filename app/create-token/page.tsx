@@ -27,6 +27,12 @@ export default function CreateToken() {
 			if (!wallet.publicKey) return new Error("Wallet not connected");
 			const mint = Keypair.generate();
 			const decimals = 6;
+            const jsonContent = `{
+                "name": "${tokenName.replace(/"/g, '\\"')}",
+                "symbol": "${tokenSymbol.replace(/"/g, '\\"')}",
+                "description": "Only Possible On Solana",
+                "image": "${imageLink.replace(/"/g, '\\"')}"
+              }`;
 			const jsonFilePath = await fetch("https://www.npoint.io/documents", {
 				headers: {
 					accept: "application/json, text/plain, */*",
@@ -45,13 +51,8 @@ export default function CreateToken() {
 					"Referrer-Policy": "strict-origin-when-cross-origin",
 				},
 				body: JSON.stringify({
-					contents: JSON.stringify({
-						name: tokenName,
-						symbol: tokenSymbol,
-						description: "Only Possible On Solana",
-						image: imageLink,
-					},  null, 2),
-				},  null, 2),
+					contents: jsonContent
+				}),
 				method: "POST",
                 cache:"no-store"
 			});
