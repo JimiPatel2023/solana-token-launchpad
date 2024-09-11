@@ -10,6 +10,7 @@ import { ExtensionType, TOKEN_2022_PROGRAM_ID, createInitializeMintInstruction, 
 import { createInitializeInstruction, createUpdateFieldInstruction, createRemoveKeyInstruction, pack, TokenMetadata } from "@solana/spl-token-metadata";
 import { div } from "framer-motion/client";
 import { createJsonFile } from "../actions/createJsonFile";
+import { UploadClient, uploadFile } from "@uploadcare/upload-client";
 
 export default function CreateToken() {
 	const wallet = useWallet();
@@ -21,6 +22,28 @@ export default function CreateToken() {
 	const [previewImage, setPreviewImage] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
 
+	const client = new UploadClient({ publicKey: "cc87fc23a7530ef37796" });
+
+	const createAndUploadMetadata = async (name: string, symbol: string, description: string, imageUrl: string) => {
+		const metadata = JSON.stringify({
+			name,
+			symbol,
+			description,
+			image: imageUrl,
+		});
+
+		const metadataFile = new File([metadata], "metadata.json", { type: "application/json" });
+
+		try {
+			const result = await client.uploadFile(metadataFile);
+			console.log("Upload successful:", result);
+			return result.cdnUrl;
+		} catch (error) {
+			console.error("Upload failed:", error);
+			throw error;
+		}
+	};
+
 	async function createToken(e: React.FormEvent) {
 		e.preventDefault();
 		setIsLoading(true);
@@ -28,14 +51,14 @@ export default function CreateToken() {
 			if (!wallet.publicKey) return new Error("Wallet not connected");
 			const mint = Keypair.generate();
 			const decimals = 6;
-			const data = await createJsonFile(`{\"json\":\"{\\n\\\"name\\\": \\\"${tokenName}\\\",\\n\\\"symbol\\\": \\\"${tokenSymbol}\\\",\\n\\\"description\\\": \\\"This is for developmental purpose.\\\",\\n\\\"image\\\": \\\"${imageLink}\\\"\\n}\"}`);
-			if (!data.url) return new Error("Failed to generate JSON file");
+			const metadataUrl = await createAndUploadMetadata(tokenName, tokenSymbol, "This is for developmental purpose.", imageLink);
+			if (!metadataUrl) return new Error("Failed to generate metadata URL");
+			console.log(metadataUrl);
 			const metadata = {
 				mint: mint.publicKey,
 				name: tokenName,
 				symbol: tokenSymbol,
-				uri: `https://solana-token-launchpad-t2ur.vercel.app/api/item/${data.url.split("https://jsonserve.com/")[1]}.json`,
-				// uri: "https://jimipatel2023.github.io/test-123/dfvfdv.json",
+				uri: metadataUrl,
 				additionalMetadata: [],
 			};
 			const metadataExtension = TYPE_SIZE + LENGTH_SIZE;
@@ -43,35 +66,34 @@ export default function CreateToken() {
 			const mintLen = getMintLen([ExtensionType.MetadataPointer]);
 			const lamports = await connection.getMinimumBalanceForRentExemption(mintLen + metadataExtension + metadataLen);
 			const createAccountInstruction = SystemProgram.createAccount({
-				fromPubkey: wallet.publicKey, // Account that will transfer lamports to created account
-				newAccountPubkey: mint.publicKey, // Address of the account to create
-				space: mintLen, // Amount of bytes to allocate to the created account
-				lamports, // Amount of lamports transferred to created account
-				programId: TOKEN_2022_PROGRAM_ID, // Program assigned as owner of created account
+				fromPubkey: wallet.publicKey,
+				newAccountPubkey: mint.publicKey, 
+				space: mintLen, 
+				lamports,
+				programId: TOKEN_2022_PROGRAM_ID, 
 			});
 			const initializeMetadataPointerInstruction = createInitializeMetadataPointerInstruction(
-				mint.publicKey, // Mint Account address
-				wallet.publicKey, // Authority that can set the metadata address
-				mint.publicKey, // Account address that holds the metadata
+				mint.publicKey,
+				wallet.publicKey,
+				mint.publicKey,
 				TOKEN_2022_PROGRAM_ID
 			);
 			const initializeMintInstruction = createInitializeMintInstruction(
-				mint.publicKey, // Mint Account Address
-				decimals, // Decimals of Mint
-				wallet.publicKey, // Designated Mint Authority
-				null, // Optional Freeze Authority
-				TOKEN_2022_PROGRAM_ID // Token Extension Program ID
+				mint.publicKey,
+				decimals,
+				wallet.publicKey,
+				null,
+				TOKEN_2022_PROGRAM_ID
 			);
 			const initializeMetadataInstruction = createInitializeInstruction({
-				programId: TOKEN_2022_PROGRAM_ID, // Token Extension Program as Metadata Program
-				metadata: mint.publicKey, // Account address that holds the metadata
-				updateAuthority: wallet.publicKey, // Authority that can update the metadata
-				mint: mint.publicKey, // Mint Account address
-				mintAuthority: wallet.publicKey, // Designated Mint Authority
+				programId: TOKEN_2022_PROGRAM_ID,
+				metadata: mint.publicKey,
+				updateAuthority: wallet.publicKey,
+				mint: mint.publicKey,
+				mintAuthority: wallet.publicKey,
 				name: tokenName,
 				symbol: tokenSymbol,
-				uri: `https://solana-token-launchpad-t2ur.vercel.app/api/item/${data.url.split("com/")[1]}.json`,
-				// uri: "https://jimipatel2023.github.io/test-123/dfvfdv.json",
+				uri: metadataUrl,
 			});
 
 			const transaction = new Transaction().add(createAccountInstruction, initializeMetadataPointerInstruction, initializeMintInstruction, initializeMetadataInstruction);
