@@ -3,6 +3,7 @@ import { Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
 import WalletContextProvider from "@/components/WalletContextProvider";
+import { Toaster } from 'react-hot-toast';
 
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] });
 
@@ -23,6 +24,7 @@ export default function RootLayout({
         <div className="fixed inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
         <Navbar />
         <div className="relative">
+          <Toaster position="top-right" />
           {children}
         </div>
         </WalletContextProvider>

@@ -5,12 +5,13 @@ import { motion } from "framer-motion";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import Image from "next/image";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { Connection, Keypair, SystemProgram, Transaction, clusterApiUrl, sendAndConfirmTransaction } from "@solana/web3.js";
-import { ExtensionType, TOKEN_2022_PROGRAM_ID, createInitializeMintInstruction, getMintLen, createInitializeMetadataPointerInstruction, getMint, getMetadataPointerState, getTokenMetadata, TYPE_SIZE, LENGTH_SIZE } from "@solana/spl-token";
+import { Connection, Keypair, SystemProgram, Transaction, clusterApiUrl, sendAndConfirmTransaction, PublicKey } from "@solana/web3.js";
+import { ExtensionType, TOKEN_2022_PROGRAM_ID, createInitializeMintInstruction, getMintLen, createInitializeMetadataPointerInstruction, getMint, getMetadataPointerState, getTokenMetadata, TYPE_SIZE, LENGTH_SIZE, createMintToInstruction, createAssociatedTokenAccountInstruction, getAssociatedTokenAddress } from "@solana/spl-token";
 import { createInitializeInstruction, createUpdateFieldInstruction, createRemoveKeyInstruction, pack, TokenMetadata } from "@solana/spl-token-metadata";
 import { div } from "framer-motion/client";
 import { createJsonFile } from "../actions/createJsonFile";
 import { UploadClient, uploadFile } from "@uploadcare/upload-client";
+import { showToast } from "../../components/CustomToast";
 
 export default function CreateToken() {
 	const wallet = useWallet();
@@ -21,6 +22,7 @@ export default function CreateToken() {
 	const [imageLink, setImageLink] = useState("");
 	const [previewImage, setPreviewImage] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
+	const [mintAmount, setMintAmount] = useState("");
 
 	const client = new UploadClient({ publicKey: "cc87fc23a7530ef37796" });
 
@@ -48,11 +50,11 @@ export default function CreateToken() {
 		e.preventDefault();
 		setIsLoading(true);
 		try {
-			if (!wallet.publicKey) return new Error("Wallet not connected");
+			if (!wallet.publicKey) throw new Error("Wallet not connected");
 			const mint = Keypair.generate();
 			const decimals = 6;
 			const metadataUrl = await createAndUploadMetadata(tokenName, tokenSymbol, "This is for developmental purpose.", imageLink);
-			if (!metadataUrl) return new Error("Failed to generate metadata URL");
+			if (!metadataUrl) throw new Error("Failed to generate metadata URL");
 			console.log(metadataUrl);
 			const metadata = {
 				mint: mint.publicKey,
@@ -67,24 +69,13 @@ export default function CreateToken() {
 			const lamports = await connection.getMinimumBalanceForRentExemption(mintLen + metadataExtension + metadataLen);
 			const createAccountInstruction = SystemProgram.createAccount({
 				fromPubkey: wallet.publicKey,
-				newAccountPubkey: mint.publicKey, 
-				space: mintLen, 
+				newAccountPubkey: mint.publicKey,
+				space: mintLen,
 				lamports,
-				programId: TOKEN_2022_PROGRAM_ID, 
+				programId: TOKEN_2022_PROGRAM_ID,
 			});
-			const initializeMetadataPointerInstruction = createInitializeMetadataPointerInstruction(
-				mint.publicKey,
-				wallet.publicKey,
-				mint.publicKey,
-				TOKEN_2022_PROGRAM_ID
-			);
-			const initializeMintInstruction = createInitializeMintInstruction(
-				mint.publicKey,
-				decimals,
-				wallet.publicKey,
-				null,
-				TOKEN_2022_PROGRAM_ID
-			);
+			const initializeMetadataPointerInstruction = createInitializeMetadataPointerInstruction(mint.publicKey, wallet.publicKey, mint.publicKey, TOKEN_2022_PROGRAM_ID);
+			const initializeMintInstruction = createInitializeMintInstruction(mint.publicKey, decimals, wallet.publicKey, null, TOKEN_2022_PROGRAM_ID);
 			const initializeMetadataInstruction = createInitializeInstruction({
 				programId: TOKEN_2022_PROGRAM_ID,
 				metadata: mint.publicKey,
@@ -98,6 +89,19 @@ export default function CreateToken() {
 
 			const transaction = new Transaction().add(createAccountInstruction, initializeMetadataPointerInstruction, initializeMintInstruction, initializeMetadataInstruction);
 
+			// Create associated token account for the user
+			const associatedTokenAddress = await getAssociatedTokenAddress(mint.publicKey, wallet.publicKey, false, TOKEN_2022_PROGRAM_ID);
+
+			const createAssociatedTokenAccountIx = createAssociatedTokenAccountInstruction(wallet.publicKey, associatedTokenAddress, wallet.publicKey, mint.publicKey, TOKEN_2022_PROGRAM_ID);
+
+			transaction.add(createAssociatedTokenAccountIx);
+
+			// Mint tokens to the user's associated token account
+			const mintAmountBigInt = BigInt(parseFloat(mintAmount) * Math.pow(10, decimals));
+			const mintToIx = createMintToInstruction(mint.publicKey, associatedTokenAddress, wallet.publicKey, mintAmountBigInt, [], TOKEN_2022_PROGRAM_ID);
+
+			transaction.add(mintToIx);
+
 			transaction.feePayer = wallet.publicKey;
 			transaction.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
 
@@ -105,10 +109,12 @@ export default function CreateToken() {
 
 			await wallet.sendTransaction(transaction, connection);
 
-			console.log("Token created successfully");
+			console.log("Token created and minted successfully");
 			console.log(mint.publicKey.toBase58());
+			showToast("Token created and minted successfully!", "success");
 		} catch (error) {
 			console.log(error);
+			showToast("Failed to create and mint token. Please try again.", "error");
 		}
 		setIsLoading(false);
 	}
@@ -139,13 +145,19 @@ export default function CreateToken() {
 							</label>
 							<input type="url" id="imageLink" value={imageLink} onChange={(e) => setImageLink(e.target.value)} className="w-full px-3 py-2 bg-[#0F172A] border border-[#3730A3]/20 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-600" required />
 						</div>
+						<div className="mb-6">
+							<label htmlFor="mintAmount" className="block text-sm font-medium text-gray-300 mb-2">
+								Mint Amount
+							</label>
+							<input type="number" id="mintAmount" value={mintAmount} onChange={(e) => setMintAmount(e.target.value)} min="0" step="0.000001" className="w-full px-3 py-2 bg-[#0F172A] border border-[#3730A3]/20 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-purple-600" required />
+						</div>
 						<motion.button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 ease-out" whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(147, 51, 234, 0.5)" }} whileTap={{ scale: 0.95 }} disabled={isLoading}>
 							{isLoading ? (
 								<div className="flex items-center gap-2 justify-center">
 									<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>Sending the transaction...
 								</div>
 							) : (
-								"Create Token"
+								"Create and Mint Token"
 							)}
 						</motion.button>
 					</form>
