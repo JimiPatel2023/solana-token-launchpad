@@ -11,11 +11,13 @@ import { createInitializeInstruction, createUpdateFieldInstruction, createRemove
 import { div } from "framer-motion/client";
 import { createJsonFile } from "../actions/createJsonFile";
 import { UploadClient, uploadFile } from "@uploadcare/upload-client";
-import { showToast } from "../../components/CustomToast";
+import { showToast } from "@/components/CustomToast";
+import { useRouter } from 'next/navigation';
 
 export default function CreateToken() {
 	const wallet = useWallet();
 	const { connection } = useConnection();
+	const router = useRouter();
 
 	const [tokenName, setTokenName] = useState("");
 	const [tokenSymbol, setTokenSymbol] = useState("");
@@ -112,6 +114,9 @@ export default function CreateToken() {
 			console.log("Token created and minted successfully");
 			console.log(mint.publicKey.toBase58());
 			showToast("Token created and minted successfully!", "success");
+			
+			// Redirect to token details page
+			router.push(`/token-details/${mint.publicKey.toBase58()}`);
 		} catch (error) {
 			console.log(error);
 			showToast("Failed to create and mint token. Please try again.", "error");

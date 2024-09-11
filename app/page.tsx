@@ -61,7 +61,7 @@ export default function Home() {
             description="Manage and monitor your launched tokens. Track performance and make updates." 
             buttonText="View My Tokens"
             icon="💼"
-            href="/my-tokens"
+            href="/view-tokens"
           />
         </motion.div>
         <motion.div variants={cardVariants}>

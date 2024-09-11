@@ -5,9 +5,9 @@ import { useConnection } from '@solana/wallet-adapter-react'
 import { motion } from 'framer-motion'
 import { PublicKey } from '@solana/web3.js'
 import { TOKEN_2022_PROGRAM_ID, getMint, getTokenMetadata } from "@solana/spl-token"
-import { showToast } from '@/components/CustomToast'
 import Image from 'next/image'
 import { FaSpinner } from 'react-icons/fa'
+import { showToast } from "@/components/CustomToast"
 
 interface TokenDetails {
   name: string
