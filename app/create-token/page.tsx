@@ -26,7 +26,7 @@ export default function CreateToken() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [mintAmount, setMintAmount] = useState("");
 
-	const client = new UploadClient({ publicKey: "cc87fc23a7530ef37796" });
+	const client = new UploadClient({ publicKey: "5108295ea32e53edf6c5" });
 
 	const createAndUploadMetadata = async (name: string, symbol: string, description: string, imageUrl: string) => {
 		const metadata = JSON.stringify({
